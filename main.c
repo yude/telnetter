@@ -209,7 +209,7 @@ void *handle_connection(void *thread_args)
     message = read_message();
 
     char visitor_message[512];
-    snprintf(visitor_message, sizeof(visitor_message), "あなたはサーバーを再起動してから %d 人目のお客様です！！！！！！！！\n", visitor);
+    snprintf(visitor_message, sizeof(visitor_message), "あなたはサーバーを再起動してから %d 回目のお客様です！！！！！！！！\n", visitor);
 
     write(soc, visitor_message, strlen(visitor_message));
     write(soc, message, 1024);
