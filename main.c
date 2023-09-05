@@ -156,7 +156,6 @@ int main(int argc, char const *argv[])
         return 1;
     }
 
-    printf("Starting server on port %d.\n", port);
     fprintf(stdout, "Starting server on port %d.\n", port);
     
     start_server(port);
