@@ -10,6 +10,7 @@
 #include <fcntl.h>
 #include <netdb.h>
 #include <time.h>
+#include <signal.h>
 
 void *handle_connection(void *threadArg);
 int start_server(int port);
@@ -22,6 +23,8 @@ struct ThreadArgs
 
 int main(int argc, char const *argv[])
 {
+    signal(SIGPIPE, SIG_IGN);
+
     if (argc != 2)
     {
         printf("Usage:\n");
@@ -222,11 +225,16 @@ void *handle_connection(void *thread_args)
     );
 
     char message[2048];
-    snprintf(message, sizeof(message), "あなたはサーバーを再起動してから %d 回目のお客様です！！！！！！！！\n", visitor);
+    snprintf(message, sizeof(message), "あなたはサーバーを再起動してから %d 回目のお客様です。\n", visitor);
     strcat(message, time_buf);
     strcat(message, content);
-    
-    write(soc, message, 2048);
+
+    int idx = 0;
+    while (message[idx] != '\0') {
+        write(soc, &message[idx], 1);
+        idx++;
+        usleep(9000);
+    }
 
     close(soc);
 }
