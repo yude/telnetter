@@ -16,6 +16,7 @@ int start_server(int port);
 struct ThreadArgs
 {
     int soc;
+    int visitor;
 };
 
 int main(int argc, char const *argv[])
@@ -69,7 +70,7 @@ char *read_message()
     fp = fopen(file_name, "r");
     if (fp == NULL)
     {
-        fprintf(stderr, "Error: Failed to open %s, does this exist?\n", file_name);
+        fprintf(stderr, "Error: Failed to open %s.\n", file_name);
         return NULL;
     }
     else
@@ -106,6 +107,8 @@ int start_server(int port)
 
     char host_buf[NI_MAXHOST];
     char service_buf[NI_MAXSERV];
+
+    int visitor = 1;
 
     if (
         (
@@ -175,6 +178,7 @@ int start_server(int port)
         }
 
         thread_args->soc = soc_io;
+        thread_args->visitor = visitor++;
 
         if (
             pthread_create(&thread_id, NULL, handle_connection, (void *)thread_args) != 0
@@ -191,17 +195,23 @@ int start_server(int port)
 
 void *handle_connection(void *thread_args)
 {
-    int soc, num;
+    int soc, num, visitor;
     char buf[512];
 
     pthread_detach(pthread_self());
 
     soc = ((struct ThreadArgs *)thread_args)->soc;
+    visitor = ((struct ThreadArgs *)thread_args)->visitor;
 
     free(thread_args);
 
     char *message = NULL;
     message = read_message();
+
+    char visitor_message[512];
+    snprintf(visitor_message, sizeof(visitor_message), "あなたはサーバーを再起動してから %d 人目のお客様です！！！！！！！！\n", visitor);
+
+    write(soc, visitor_message, strlen(visitor_message));
     write(soc, message, 1024);
 
     close(soc);
