@@ -22,7 +22,12 @@ char *read_message()
     FILE *fp;
     char buf[256];
     char file_name[] = "message.txt";
-    static char content[1024] = "";
+    static char content[1024];
+
+    if (content[0] != '\0')
+    {
+        return content;
+    }    
 
     fp = fopen(file_name, "r");
     if (fp == NULL)
