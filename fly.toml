@@ -1,0 +1,16 @@
+# fly.toml app configuration file generated for garbage-telnet-server on 2023-09-05T16:50:42+09:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = "garbage-telnet-server"
+primary_region = "nrt"
+
+[build]
+
+[[services]]
+  protocol = "tcp"
+  internal_port = 2000
+
+  [[services.ports]]
+    port = 23
