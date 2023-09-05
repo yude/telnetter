@@ -112,6 +112,8 @@ int main(int argc, char const *argv[])
     }
 
     printf("Starting server on port %d.\n", port);
+    fprintf(stdout, "Starting server on port %d.\n", port);
+    
     start_server(port);
 
     return 0;
