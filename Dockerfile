@@ -13,4 +13,6 @@ WORKDIR /app
 COPY --from=builder /build/telnetter ./
 COPY ./message.txt ./
 
+ENV TZ Asia/Tokyo
+
 CMD ["./telnetter", "2000"]

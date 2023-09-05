@@ -7,5 +7,7 @@ services:
       - type: bind
         source: ./message.txt
         target: /app/message.txt
+    environment:
+      - TZ=Asia/Tokyo
     ports:
       - 23:2000
