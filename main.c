@@ -11,9 +11,11 @@
 #include <netdb.h>
 #include <time.h>
 #include <signal.h>
+#include <assert.h>
 
 void *handle_connection(void *threadArg);
 int start_server(int port);
+char *replace_string(char* s, const char* before, const char* after);
 
 struct ThreadArgs
 {
@@ -200,6 +202,7 @@ int start_server(int port)
 void *handle_connection(void *thread_args)
 {
     int soc, num, visitor;
+    int idx = 0;
     char buf[512];
 
     pthread_detach(pthread_self());
@@ -224,17 +227,62 @@ void *handle_connection(void *thread_args)
         fmt_week[fmt_time.tm_wday], fmt_time.tm_hour, fmt_time.tm_min, fmt_time.tm_sec
     );
 
-    char message[2048];
-    snprintf(message, sizeof(message), "あなたはサーバーを再起動してから %d 回目のお客様です。\n", visitor);
-    strcat(message, time_buf);
-    strcat(message, content);
+    char dynamic_message[2048];
+    snprintf(
+        dynamic_message,
+        sizeof(dynamic_message),
+        "あなたはサーバーを再起動してから %d 回目のお客様です。\n",
+        visitor
+    );
+    strcat(dynamic_message, time_buf);
 
-    int idx = 0;
-    while (message[idx] != '\0') {
-        write(soc, &message[idx], 1);
+    const char dynamic_template[] = "{dynamic}";
+
+    replace_string(
+        content,
+        dynamic_template,
+        dynamic_message
+    );
+
+    while (content[idx] != '\0') {
+        write(soc, &content[idx], 1);
         idx++;
         usleep(9000);
     }
 
     close(soc);
+}
+
+char *replace_string(char* s, const char* before, const char* after)
+{
+    assert(s != NULL);
+    assert(before != NULL);
+    assert(after != NULL);
+
+    const size_t before_len = strlen(before);
+    if (before_len == 0) {
+        return s;
+    }
+
+    const size_t after_len = strlen(after);
+    char* p = s;
+
+    while (1)
+    {
+        p = strstr(p, before);
+        if (p == NULL)
+        {
+            break;
+        }
+
+        const char* p2 = p + before_len;
+
+        memmove(p + after_len, p2, strlen(p2) + 1);
+
+        memcpy(p, after, after_len);
+
+        p += after_len;
+    }
+
+    return s;
 }
