@@ -96,7 +96,6 @@ int start_server(int port)
         }
 
         thread_args->soc = soc_io;
-        // thread_args->client = client;
 
         if (
             pthread_create(&thread_id, NULL, handle_connection, (void *)thread_args) != 0
@@ -118,11 +117,8 @@ void *handle_connection(void *thread_args)
     pthread_detach(pthread_self());
 
     soc = ((struct ThreadArgs *)thread_args)->soc;
-    // client = ((struct ThreadArgs *)thread_args)->client;
-    free(thread_args);
 
-    // len = sizeof(client);
-    // sock_w = accept(sock_r, (struct sockaddr *)&client, &len);
+    free(thread_args);
 
     char *message = NULL;
     message = read_message();
