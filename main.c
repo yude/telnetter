@@ -6,6 +6,16 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <netinet/in.h>
+#include <pthread.h>
+#include <fcntl.h>
+#include <netdb.h>
+
+void *handle_connection(void *threadArg);
+
+struct ThreadArgs
+{
+    int soc;
+};
 
 char *read_message()
 {
@@ -38,48 +48,87 @@ char *read_message()
     return content;
 }
 
+
 int start_server(int port)
 {
-    int sock_w, sock_r;
-    struct sockaddr_in addr, client;
-    socklen_t len;
-    int ret;
+    struct sockaddr_in addr;
+    
+    int soc_listen;
+    int soc_io;
 
-    char *message = NULL;
-    message = read_message();
-
-    sock_r = socket(AF_INET, SOCK_STREAM, 0);
-
-    if (sock_r < 0)
-    {
-        fprintf(stderr, "Error: Failed to create socket.\n");
-        return 1;
-    }
+    pthread_t thread_id;
+    struct ThreadArgs *thread_args;
 
     addr.sin_family = AF_INET;
     addr.sin_port = htons(port);
-    addr.sin_addr.s_addr = INADDR_ANY;
+    addr.sin_addr.s_addr = htonl(INADDR_ANY);
 
-    ret = bind(sock_r, (struct sockaddr *)&addr, sizeof(addr));
-
-    if (ret < 0)
+    if (
+        (
+            soc_listen = socket(AF_INET, SOCK_STREAM, 0)
+        ) < 0
+    )
     {
-        fprintf(stderr, "Error: Failed to bind to socket.\n");
-        return 1;
+        perror("Error: Failed to listen port.\n");
+        exit(1);
     }
-    listen(sock_r, 5);
+
+    if (
+        bind(
+            soc_listen, (struct sockaddr *)&addr, sizeof(addr)
+        ) == -1
+    )
+    {
+        perror("Error: Failed to listen port.\n");
+        exit(1);
+    }
+
+    listen(soc_listen, 1);
+
     while (1)
     {
-        len = sizeof(client);
-        sock_w = accept(sock_r, (struct sockaddr *)&client, &len);
+        soc_io = accept(soc_listen, NULL, NULL);
 
-        write(sock_w, message, 1024);
+        if ((thread_args = (struct ThreadArgs *)malloc(sizeof(struct ThreadArgs))) == NULL)
+        {
+            fprintf(stderr, "Error: Failed to allocate memory.\n");
+            exit(1);
+        }
+
+        thread_args->soc = soc_io;
+        // thread_args->client = client;
+
+        if (
+            pthread_create(&thread_id, NULL, handle_connection, (void *)thread_args) != 0
+        ) {
+            fprintf(stderr, "Error: Failed to create thread.\n");
+            exit(1);
+        }
+
     }
 
-    close(sock_w);
-    close(sock_r);
-
     return 0;
+}
+
+void *handle_connection(void *thread_args)
+{
+    int soc, num;
+    char buf[512];
+
+    pthread_detach(pthread_self());
+
+    soc = ((struct ThreadArgs *)thread_args)->soc;
+    // client = ((struct ThreadArgs *)thread_args)->client;
+    free(thread_args);
+
+    // len = sizeof(client);
+    // sock_w = accept(sock_r, (struct sockaddr *)&client, &len);
+
+    char *message = NULL;
+    message = read_message();
+    write(soc, message, 1024);
+
+    close(soc);
 }
 
 int main(int argc, char const *argv[])
