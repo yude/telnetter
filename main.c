@@ -285,7 +285,7 @@ void *handle_connection(void *thread_args)
         remove_char(command_buf, '\r');
 
         snprintf(text_file_name, sizeof(text_file_name), "content/%s.txt", &command_buf);
-        printf("File name: %s\n", text_file_name);
+
         text_content = load_message(text_file_name);
 
         if (text_content != NULL) {
