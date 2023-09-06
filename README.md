@@ -1,6 +1,6 @@
-# telnetter
+# telnet.yude.jp
 
-Simple telnet server written in C
+Tiny telnet server written in C, hosted on `telnet://telnet.yude.jp`.
 
 ## License
 
