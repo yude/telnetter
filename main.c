@@ -17,6 +17,7 @@ void *handle_connection(void *threadArg);
 int start_server(int port);
 char *replace_string(char* s, const char* before, const char* after);
 char *get_datetime();
+void remove_char(char *str, char target);
 
 struct ThreadArgs
 {
@@ -97,7 +98,7 @@ char *load_message(char *file_name)
     fp = fopen(file_name, "r");
     if (fp == NULL)
     {
-        fprintf(stderr, "Error: Failed to open %s.\n", file_name);
+        fprintf(stdout, "Error: Failed to open %s.\n", file_name);
         return NULL;
     }
     else
@@ -234,7 +235,7 @@ void *handle_connection(void *thread_args)
     free(thread_args);
 
     char *content = NULL;
-    char *message_file_name = "message.txt";
+    char *message_file_name = "content/message.txt";
     content = load_message(message_file_name);
 
     char *time_buf = NULL;
@@ -277,21 +278,22 @@ void *handle_connection(void *thread_args)
         write(soc, &command_reference_message, sizeof(command_reference_message));
         read(soc, &command_buf, sizeof(command_buf));
 
-        // Command: `help`
-        char help_command[] = "help";
-        if (
-          strncmp(help_command, command_buf, strlen(help_command)) == 0
-        )
-        {
-            char *help_content = NULL;
-            char *help_file_name = "help.txt";
-            help_content = load_message(help_file_name);
+        char *text_content = NULL;
+        char text_file_name[2048];
 
+        remove_char(command_buf, '\n');
+        remove_char(command_buf, '\r');
+
+        snprintf(text_file_name, sizeof(text_file_name), "content/%s.txt", &command_buf);
+        printf("File name: %s\n", text_file_name);
+        text_content = load_message(text_file_name);
+
+        if (text_content != NULL) {
             idx = 0;
 
-            while (help_content[idx] != '\0')
+            while (text_content[idx] != '\0')
             {
-                write(soc, &help_content[idx], 1);
+                write(soc, &text_content[idx], 1);
                 idx++;
                 usleep(9000);
             }
@@ -362,4 +364,14 @@ char *replace_string(char* s, const char* before, const char* after)
     }
 
     return s;
+}
+
+void remove_char(char *str, char target) {
+
+    char *src, *dst;
+    for (src = dst = str; *src != '\0'; src++) {
+        *dst = *src;
+        if (*dst != target) dst++;
+    }
+    *dst = '\0';
 }

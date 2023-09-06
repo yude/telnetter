@@ -11,7 +11,7 @@ FROM debian AS runner
 WORKDIR /app
 
 COPY --from=builder /build/telnetter ./
-COPY ./*.txt ./
+COPY ./content ./content
 
 ENV TZ Asia/Tokyo
 
