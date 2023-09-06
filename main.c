@@ -280,7 +280,7 @@ void *handle_connection(void *thread_args)
         // Command: `help`
         char help_command[] = "help";
         if (
-          strncmp(help_command, command_buf, 4) == 0
+          strncmp(help_command, command_buf, strlen(help_command)) == 0
         )
         {
             char *help_content = NULL;
@@ -292,6 +292,27 @@ void *handle_connection(void *thread_args)
             while (help_content[idx] != '\0')
             {
                 write(soc, &help_content[idx], 1);
+                idx++;
+                usleep(9000);
+            }
+
+            goto COMMAND_BEGIN;
+        }
+
+        // Command: `now`
+        char now_command[] = "now";
+        if (
+          strncmp(now_command, command_buf, strlen(now_command)) == 0
+        )
+        {
+            char *now_content = NULL;
+            now_content = get_datetime();
+
+            idx = 0;
+
+            while (now_content[idx] != '\0')
+            {
+                write(soc, &now_content[idx], 1);
                 idx++;
                 usleep(9000);
             }
