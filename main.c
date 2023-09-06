@@ -16,6 +16,7 @@
 void *handle_connection(void *threadArg);
 int start_server(int port);
 char *replace_string(char* s, const char* before, const char* after);
+char *get_datetime();
 
 struct ThreadArgs
 {
@@ -61,12 +62,32 @@ int main(int argc, char const *argv[])
     return 0;
 }
 
-char *read_message()
+char *get_datetime()
+{
+    struct tm fmt_time;
+    char *fmt_week[] = {"日", "月", "火", "水", "木", "金", "土"};
+    time_t t = time(NULL);
+    localtime_r(&t, &fmt_time);
+    static char time_buf[1024];
+
+    snprintf(
+        time_buf, sizeof(time_buf),
+        "現在の時刻は %d/%d/%d (%s) %d:%d:%02d (JST) です。\n",
+        fmt_time.tm_year + 1900, fmt_time.tm_mon + 1, fmt_time.tm_mday,
+        fmt_week[fmt_time.tm_wday], fmt_time.tm_hour, fmt_time.tm_min, fmt_time.tm_sec
+    );
+
+    return time_buf;
+}
+
+char *load_message(char *file_name)
 {
     FILE *fp;
     char buf[256];
-    char file_name[] = "message.txt";
-    static char content[1024];
+    static char content[2048];
+
+    memset(buf, '\0', sizeof(buf));
+    memset(content, '\0', sizeof(content) - 1);
 
     if (content[0] != '\0')
     {
@@ -213,19 +234,11 @@ void *handle_connection(void *thread_args)
     free(thread_args);
 
     char *content = NULL;
-    content = read_message();
+    char *message_file_name = "message.txt";
+    content = load_message(message_file_name);
 
-    struct tm fmt_time;
-    char *fmt_week[] = {"日", "月", "火", "水", "木", "金", "土"};
-    time_t t = time(NULL);
-    localtime_r(&t, &fmt_time);
-    char time_buf[1024];
-    snprintf(
-        time_buf, sizeof(time_buf),
-        "現在の時刻は %d/%d/%d (%s) %d:%d:%02d (JST) です。\n",
-        fmt_time.tm_year + 1900, fmt_time.tm_mon + 1, fmt_time.tm_mday,
-        fmt_week[fmt_time.tm_wday], fmt_time.tm_hour, fmt_time.tm_min, fmt_time.tm_sec
-    );
+    char *time_buf = NULL;
+    time_buf = get_datetime();
 
     char dynamic_message[2048];
     snprintf(
@@ -244,10 +257,53 @@ void *handle_connection(void *thread_args)
         dynamic_message
     );
 
-    while (content[idx] != '\0') {
+    while (content[idx] != '\0')
+    {
         write(soc, &content[idx], 1);
         idx++;
         usleep(9000);
+    }
+
+    char command_buf[1024];
+
+    while (1)
+    {
+        COMMAND_BEGIN:
+
+        memset(command_buf, '\0', sizeof(command_buf) - 1);
+        
+        const char command_reference_message[] =
+        "なにかコマンドを入力してください。help でヘルプを表示します。\n[telnet.yude.jp]> ";
+        write(soc, &command_reference_message, sizeof(command_reference_message));
+        read(soc, &command_buf, sizeof(command_buf));
+
+        // Command: `help`
+        char help_command[] = "help";
+        if (
+          strncmp(help_command, command_buf, 4) == 0
+        )
+        {
+            char *help_content = NULL;
+            char *help_file_name = "help.txt";
+            help_content = load_message(help_file_name);
+
+            idx = 0;
+
+            while (help_content[idx] != '\0')
+            {
+                write(soc, &help_content[idx], 1);
+                idx++;
+                usleep(9000);
+            }
+
+            goto COMMAND_BEGIN;
+        }
+        
+        command_buf[strcspn(command_buf, "\n")] = 0;
+        const char unknown_command_message[]
+        = "無効な命令です。\n";
+
+        write(soc, &unknown_command_message, sizeof(unknown_command_message));
     }
 
     close(soc);

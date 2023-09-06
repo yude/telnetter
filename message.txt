@@ -1,8 +1,7 @@
+
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 　　　　　　　　　Welcome to yude.jp!
 　　　　This server uses UTF-8 for encoding.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 {dynamic}
-
-Hello world!
