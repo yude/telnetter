@@ -275,7 +275,15 @@ void *handle_connection(void *thread_args)
         
         const char command_reference_message[] =
         "なにか命令を入力してください。help でヘルプを表示します。\n[telnet.yude.jp]> ";
-        write(soc, &command_reference_message, sizeof(command_reference_message));
+        
+        idx = 0;
+        while (command_reference_message[idx] != '\0')
+        {
+            write(soc, &command_reference_message[idx], 1);
+            idx++;
+            usleep(9000);
+        }
+        
         read(soc, &command_buf, sizeof(command_buf));
 
         char *text_content = NULL;
@@ -322,11 +330,16 @@ void *handle_connection(void *thread_args)
             goto COMMAND_BEGIN;
         }
         
-        command_buf[strcspn(command_buf, "\n")] = 0;
         const char unknown_command_message[]
         = "無効な命令です。\n";
 
-        write(soc, &unknown_command_message, sizeof(unknown_command_message));
+        idx = 0;
+        while (unknown_command_message[idx] != '\0')
+        {
+            write(soc, &unknown_command_message[idx], 1);
+            idx++;
+            usleep(9000);
+        }
     }
 
     close(soc);
