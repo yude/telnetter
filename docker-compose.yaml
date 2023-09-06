@@ -5,8 +5,8 @@ services:
     image: ghcr.io/yude/telnetter
     volumes:
       - type: bind
-        source: ./message.txt
-        target: /app/message.txt
+        source: ./content
+        target: /app/content
     environment:
       - TZ=Asia/Tokyo
     ports:

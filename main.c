@@ -286,6 +286,12 @@ void *handle_connection(void *thread_args)
         
         read(soc, &command_buf, sizeof(command_buf));
 
+        // Ignore control code
+        if (iscntrl(command_buf[0]) == 1)
+        {
+            goto COMMAND_BEGIN;
+        }
+        
         char *text_content = NULL;
         char text_file_name[2048];
 
@@ -330,8 +336,13 @@ void *handle_connection(void *thread_args)
             goto COMMAND_BEGIN;
         }
         
-        const char unknown_command_message[]
-        = "無効な命令です。\n";
+        char unknown_command_message[1024];
+        snprintf(
+            unknown_command_message,
+            sizeof(unknown_command_message),
+            "%s という命令は無効です。\n",
+            command_buf
+            );
 
         idx = 0;
         while (unknown_command_message[idx] != '\0')
