@@ -72,7 +72,7 @@ char *get_datetime()
 
     snprintf(
         time_buf, sizeof(time_buf),
-        "現在の時刻は %d/%d/%d (%s) %d:%d:%02d (JST) です。\n",
+        "現在の時刻は %d/%d/%d (%s) %d:%02d:%02d (JST) です。\n",
         fmt_time.tm_year + 1900, fmt_time.tm_mon + 1, fmt_time.tm_mday,
         fmt_week[fmt_time.tm_wday], fmt_time.tm_hour, fmt_time.tm_min, fmt_time.tm_sec
     );
@@ -273,7 +273,7 @@ void *handle_connection(void *thread_args)
         memset(command_buf, '\0', sizeof(command_buf) - 1);
         
         const char command_reference_message[] =
-        "なにかコマンドを入力してください。help でヘルプを表示します。\n[telnet.yude.jp]> ";
+        "なにか命令を入力してください。help でヘルプを表示します。\n[telnet.yude.jp]> ";
         write(soc, &command_reference_message, sizeof(command_reference_message));
         read(soc, &command_buf, sizeof(command_buf));
 
