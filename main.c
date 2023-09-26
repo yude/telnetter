@@ -16,7 +16,7 @@
 void *handle_connection(void *threadArg);
 int start_server(int port);
 char *replace_string(char* s, const char* before, const char* after);
-char *get_datetime();
+char *get_datetime(void);
 void remove_char(char *str, char target);
 
 struct ThreadArgs
@@ -63,7 +63,7 @@ int main(int argc, char const *argv[])
     return 0;
 }
 
-char *get_datetime()
+char *get_datetime(void)
 {
     struct tm fmt_time;
     char *fmt_week[] = {"日", "月", "火", "水", "木", "金", "土"};
